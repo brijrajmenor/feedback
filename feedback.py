@@ -1,7 +1,9 @@
 import pandas as pd
 from datetime import timedelta
 import streamlit as st
-import re  # Import regex
+import re
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Streamlit app title
 st.set_page_config(page_title="Service Feedback Reports", page_icon="logo.jpg")
@@ -78,6 +80,26 @@ if uploaded_file is not None:
     # Display the filtered summary DataFrame in Streamlit
     st.write("Filtered Customer Feedback Summary")
     st.dataframe(df_filtered)
+
+    # ** Generate Pie Chart for Feedback Distribution **
+
+    feedback_counts = df_filtered["Feedback Type"].value_counts()
+    st.write("Feedback Distribution")
+    fig, ax = plt.subplots()
+    ax.pie(feedback_counts, labels=feedback_counts.index, autopct="%1.1f%%", startangle=90)
+    ax.axis("equal")  # Equal aspect ratio ensures the pie chart is circular.
+    st.pyplot(fig)
+
+    # ** Generate Bar Plot for Feedback Count Over Time **
+    
+    df_filtered['Date'] = df_filtered['Timestamp'].dt.date
+    feedback_by_date = df_filtered.groupby('Date')['Feedback Type'].count()
+
+    st.write("Feedback Count Over Time")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(x=feedback_by_date.index, y=feedback_by_date.values, ax=ax)
+    ax.set(xlabel="Date", ylabel="Feedback Count", title="Feedback Count by Date")
+    st.pyplot(fig)
 
     # Generate dynamic file name based on date range
     file_name = f"service_feedback_summary_{start_date}_to_{end_date}.xlsx".replace(":", "-")
